@@ -6,7 +6,7 @@ class AppLogin extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(primarySwatch: Colors.pink),
-      home: HomePage(),
+      home: CustomForm(),
     ); 
   }
 }
