@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'home_page_logado.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -23,7 +25,6 @@ class _HomePageState extends State<CustomForm> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.pink.shade300,
           title: Text("Login"),
           leading: Icon(Icons.person_rounded),
         ),
@@ -49,14 +50,14 @@ class _HomePageState extends State<CustomForm> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.text,
-                      validator: (validacao) {
-                        if (validacao!.isEmpty)
-                          return "Insira um usuário";
-                        else if (validacao.length <= 3)
-                          return "O nome de usuário precisa ter pelo menos 4 dígitos";
-                        else
-                          return null;
-                      },
+                      validator: MultiValidator([
+                        RequiredValidator(errorText: "Preencher campo"),
+                        MinLengthValidator(4,
+                            errorText:
+                                "O campo necessita de pelo menos 4 dígitos"),
+                        MaxLengthValidator(12,
+                            errorText: "O campo deve ter no máximo 12 dígitos")
+                      ]),
                       onSaved: (validacao) => _usuario = validacao!,
                     ),
 
@@ -85,14 +86,14 @@ class _HomePageState extends State<CustomForm> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.text,
-                      validator: (validacao) {
-                        if (validacao!.isEmpty)
-                          return "Insira uma senha";
-                        else if (validacao.length <= 3)
-                          return "A senha precisa ter pelo menos 4 dígitos";
-                        else
-                          return null;
-                      },
+                      validator: MultiValidator([
+                        RequiredValidator(errorText: "Preencher campo"),
+                        MinLengthValidator(4,
+                            errorText:
+                                "O campo necessita de pelo menos 4 dígitos"),
+                        MaxLengthValidator(12,
+                            errorText: "O campo deve ter no máximo 12 dígitos")
+                      ]),
                       onSaved: (validacao) => _senha = validacao!,
                     ),
 
@@ -110,12 +111,16 @@ class _HomePageState extends State<CustomForm> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          print("usuario $_usuario e senha: $_senha");
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HomePageUsuario(
+                                        usuario: '$_usuario',
+                                      )));
                         }
                       },
                     ),
                   ],
-                  //)
                 ))));
   }
 }
