@@ -1,13 +1,13 @@
 import 'dart:async';
-
+import '/data/database_helper.dart';
 import '/models/usuario.dart';
-import '/data/CtrlQuery/login_ctr.dart';
+
 
 class LoginRequest {
-  LoginCtr con = LoginCtr();
+  DatabaseHelper instance = DatabaseHelper();
 
  Future<Usuario?> getLogin(String usuario, String senha) {
-    var result = con.getLogin(usuario,senha);
+    var result = instance.getLogin(usuario,senha);
     return result;
   }
 }

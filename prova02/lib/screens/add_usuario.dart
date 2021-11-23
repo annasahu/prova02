@@ -1,9 +1,7 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:prova02/data/database_helper.dart';
 import 'package:prova02/models/usuario.dart';
-
 import 'login.dart';
 
 class AddUsuario extends StatefulWidget {
@@ -21,8 +19,12 @@ class AddUsuarioState extends State<AddUsuario> {
 
   bool _isObscure = true;
 
+  late BuildContext _ctx;
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
+    _ctx = context;
     return Scaffold(
         appBar: AppBar(
           title: Text("Cadastrar usuário"),
@@ -101,60 +103,72 @@ class AddUsuarioState extends State<AddUsuario> {
 
                     //BOTÃO PARA SALVAR USUÁRIO
                     ElevatedButton.icon(
-                      icon: Icon(Icons.add, color: Colors.white),
-                      label: Text('Salvar'),
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.pinkAccent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0)),
-                      ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          //_submit();
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(
-                                      'Usuário "$_usuario" adicionado com sucesso!'),
-                                  actions: <Widget>[
-                                    ElevatedButton.icon(
-                                      icon: Icon(Icons.keyboard_return_rounded,
-                                          color: Colors.white),
-                                      label: Text('Voltar'),
-                                      style: ElevatedButton.styleFrom(
-                                        primary: Colors.pinkAccent,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(30.0)),
-                                      ),
-                                      onPressed: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          _formKey.currentState!.save();
-                                          //_submit();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const CustomForm()),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                );
-                              });
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => HomePageUsuario(
-                          //             usuario: _usuario,
-                          //           )),
-                          // );
-                        }
-                      },
-                    ),
+                        icon: Icon(Icons.add, color: Colors.white),
+                        label: Text('Salvar'),
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.pinkAccent,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0)),
+                        ),
+                        onPressed: () {
+                          _formKey.currentState;
+                          if (_formKey.currentState!.validate()) {
+                            // _formKey.currentState!.save();
+                            setState(() {
+                              _isLoading = true;
+                              _formKey.currentState!.save();
+
+                              var usuario = Usuario(_usuario, _senha);
+                              print(usuario.usuario);
+                              print(usuario.senha);
+                              var db = DatabaseHelper();
+                              db.saveUser(usuario);
+                              _isLoading = false;
+
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                          'Usuário "$_usuario" adicionado com sucesso!'),
+                                      actions: <Widget>[
+                                        ElevatedButton.icon(
+                                          icon: Icon(
+                                              Icons.keyboard_return_rounded,
+                                              color: Colors.white),
+                                          label: Text('Voltar'),
+                                          style: ElevatedButton.styleFrom(
+                                            primary: Colors.pinkAccent,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        30.0)),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const CustomForm()),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            });
+                          } else {
+                            if (_formKey.currentState!.validate()) {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('Erro ao adicionar usuário!'),
+                                    );
+                                  });
+                            }
+                          }
+                        }),
                   ],
                 ))));
   }

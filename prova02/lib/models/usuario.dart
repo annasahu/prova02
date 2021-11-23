@@ -1,22 +1,23 @@
+import 'package:prova02/data/database_helper.dart';
+
 class Usuario {
-  late int _id;
-  late String _usuario;
-  late String _senha;
+  late int id;
+  late String usuario;
+  late String senha;
 
-  Usuario(this._usuario, this._senha);
+  Usuario(this.usuario, this.senha);
 
-  Usuario.fromMap(dynamic obj) {
-    _usuario = obj['usuario'];
-    _senha = obj['senha'];
+  Usuario.fromMap(Map<String,dynamic> map) {
+    // id = map['id'];
+    usuario = map['usuario'];
+    senha = map['senha'];
   }
 
-  String get usuario => _usuario;
-  String get senha => _senha;
-
   Map<String, dynamic> toMap() {
-    var map = <String, dynamic>{};
-    map["usuario"] = _usuario;
-    map["senha"] = _senha;
-    return map;
+    return {
+      // DatabaseHelper.colunaId: id,
+      DatabaseHelper.colunaUsuario: usuario,
+      DatabaseHelper.colunaSenha: senha,
+    };
   }
 }

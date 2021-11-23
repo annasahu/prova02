@@ -7,7 +7,7 @@ abstract class LoginCallBack {
 }
 
 class LoginResponse {
-  LoginCallBack _callBack;
+  LoginCallBack _callBack; 
   LoginRequest loginRequest = LoginRequest();
   LoginResponse(this._callBack);
 

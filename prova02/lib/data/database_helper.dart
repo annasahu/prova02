@@ -1,43 +1,105 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
 import 'package:prova02/models/usuario.dart';
 import 'package:path/path.dart';
 import 'dart:async';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper.internal();
   factory DatabaseHelper() => _instance;
 
-  static Database?_db;
+  static const _databaseName = "usuario.db";
+  static const _databaseVersion = 1;
 
-  Future<Database?> get db async {
-    if (_db != null) {
-      return _db;
-    }
-    _db = await initDb();
-    return _db;
+  static const tabela = 'usuario.db';
+
+  static const colunaId = 'id';
+  static const colunaUsuario = 'usuario';
+  static const colunaSenha = 'senha';
+
+  static Database? _database;
+  
+  Future<Database?> get database async {
+    if (_database != null) return _database;
+
+    _database = await _initDatabase();
+    return _database;
   }
 
   DatabaseHelper.internal();
 
-  initDb() async {
-    Directory documentDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentDirectory.path, "data_flutter.db");
-    
-    // Only copy if the database doesn't exist
-    //if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound){
-      // Load database from asset and copy
-      ByteData data = await rootBundle.load(join('data', 'flutter.db'));
-      List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  // abrir o banco
+  _initDatabase() async {
+    String path = join(await getDatabasesPath(), _databaseName);
+    return await openDatabase(path,
+        version: _databaseVersion, onCreate: _onCreate);
+  }
 
-      // Save copied asset to documents
-      await File(path).writeAsBytes(bytes);
-    //}
+  // criar tabela
+  Future _onCreate(Database db, int version) async {
+    await db.execute('''CREATE TABLE $tabela IF NOT EXISTS(
+      $colunaId INTEGER PRIMARY KEY AUTOINCREMENT,
+      $colunaUsuario TEXT NOT NULL,
+      $colunaSenha TEXT NOT NULL
+    )
+    ''');
+    print("Tabela criada");
+  }
 
-    var ourDb = await openDatabase(path);
-    return ourDb;
+  // CRUD
+
+  // insere
+  Future<int> saveUser(Usuario usuario) async {
+    Database? db = await _instance.database;
+    print(usuario);
+    int res = await db!
+        .insert(tabela, {'usuario': usuario.usuario, 'senha': usuario.senha});
+    List<Map> list = await db.rawQuery('SELECT * FROM Usuario');
+    print(list);
+    return res;
+  }
+
+  // atualiza
+  Future<int> updateUser(Usuario usuario) async {
+    Database? db = await _instance.database;
+    print(usuario);
+    int id = usuario.toMap()['id'];
+    int res = await db!.update(tabela, usuario.toMap(),
+        where: '$colunaId = ?', whereArgs: [id]);
+    List<Map> list = await db.rawQuery('SELECT * FROM Usuario');
+    print(list);
+    return res;
+  }
+
+  // deleta
+  Future<int> deleteUser(int id) async {
+    Database? db = await _instance.database;
+    print(id);
+    int res = await db!.delete(tabela, where: '$colunaId = ?', whereArgs: [id]);
+    List<Map> list = await db.rawQuery('SELECT * FROM Usuario');
+    print(list);
+    return res;
+  }
+
+  // login
+  Future<Usuario?> getLogin(String usuario, String senha) async {
+    Database? db = await _instance.database;
+    var res = await db!.rawQuery(
+        "SELECT * FROM usuario WHERE usuario = '$usuario' AND senha = '$senha'");
+
+    if (res.isNotEmpty) {
+      return Usuario.fromMap(res.first);
+    }
+
+    return null;
+  }
+
+  // listar
+  Future<List<Usuario>?> getAllUsers() async {
+    Database? db = await _instance.database;
+    var res = await db!.query("usuario");
+
+    List<Usuario>? list =
+        res.isNotEmpty ? res.map((c) => Usuario.fromMap(c)).toList() : null;
+    return list;
   }
 }
